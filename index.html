@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f6f4ef">
+  <meta name="description" content="Find every possible grouping of your final eight Connections words, use feedback to narrow the choices, or import a screenshot.">
+  <title>Connections Solver</title>
+  <style>
+    :root { color-scheme: light; --ink:#242924; --muted:#65716d; --bg:#f6f4ef; --paper:#ffffff; --line:#dddcd4; --navy:#273f43; --navy2:#35555a; --soft:#eff1ea; --accent:#e9bd54; --blue:#dceaf5; --green:#d8e9d4; --purple:#eee5fa; --danger:#a33636; --shadow:0 12px 34px rgba(30,43,34,.06) }
+    *{box-sizing:border-box} html{font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:var(--bg)} body{margin:0;min-height:100dvh} button,input{font:inherit} button{cursor:pointer;touch-action:manipulation} button:focus-visible,input:focus-visible{outline:3px solid #5b8a98;outline-offset:2px} button:disabled{cursor:not-allowed;opacity:.43} .wrap{max-width:1040px;margin:0 auto;padding:24px 18px 80px}
+    header{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:23px} .brand{display:flex;gap:12px;align-items:center}.mark{background:#293f3d;display:grid;grid-template-columns:repeat(2,13px);grid-template-rows:repeat(2,13px);gap:4px;padding:10px;border-radius:12px;flex:none}.mark span{border-radius:3px;background:#e8c658}.mark span:nth-child(2){background:#a3bedd}.mark span:nth-child(3){background:#b0c9a6}.mark span:nth-child(4){background:#c4a7d8} h1{font-size:clamp(1.45rem,3.5vw,2rem);letter-spacing:-.04em;line-height:1.14;margin:0} header .subtitle{margin:5px 0 0;color:var(--muted);font-size:.86rem} .reset{border:1px solid #cdd0c8;background:transparent;padding:10px 14px;border-radius:10px;font-weight:650;white-space:nowrap}
+    .layout{display:grid;grid-template-columns:minmax(300px,380px) minmax(0,1fr);gap:22px;align-items:start}.panel{border:1px solid #e5e4dc;background:var(--paper);border-radius:18px;box-shadow:var(--shadow);padding:20px} .panel h2{font-size:1.05rem;margin:0 0 5px;letter-spacing:-.02em} .description{font-size:.88rem;color:var(--muted);line-height:1.48;margin:0 0 18px}.eyebrow{font-size:.76rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#60716c;margin-bottom:10px}
+    .word-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.word-field{min-width:0;border:1.5px solid #d4d9cf;background:#f8f9f6;border-radius:10px;text-align:center;min-height:46px;padding:9px 7px;font-size:.91rem;font-weight:740;text-transform:uppercase;color:#283733}.word-field::placeholder{color:#9a9f97;font-weight:550;text-transform:none} .controls{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}.primary,.secondary{border-radius:10px;min-height:45px;padding:10px 12px;font-size:.88rem;font-weight:760;display:flex;justify-content:center;align-items:center;gap:7px}.primary{background:var(--navy);color:white;border:1px solid var(--navy)}.primary:hover{background:var(--navy2)}.secondary{background:#f6f5f0;border:1px solid #d6d8d1;color:var(--navy)}.secondary:hover,.reset:hover{background:#eaece6} .upload-label{cursor:pointer} .upload-label input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none} .upload-label:focus-within{outline:3px solid #5b8a98;outline-offset:2px} .hint{font-size:.76rem;line-height:1.46;color:#7d857f;margin:11px 0 0}
+    .status{border:1px solid #e2e5dd;background:#f4f7f2;border-radius:12px;padding:12px 13px;color:#46574f;line-height:1.42;font-size:.85rem;margin:16px 0 0;min-height:45px} .status.error{color:#962d2d;background:#fdf2f2;border-color:#f0d2d2}.status.success{background:#ecf7ed;border-color:#cde2ce;color:#356143}
+    .divider{height:1px;background:#ebece6;margin:22px 0 18px} .selected-box{background:#f4f5ef;border:1px solid #e3e8df;border-radius:12px;padding:13px;margin:11px 0 12px}.selected-caption{display:block;font-size:.73rem;letter-spacing:.08em;text-transform:uppercase;color:#67766f;font-weight:780;margin-bottom:6px}.selected-text{font-weight:730;font-size:.92rem;line-height:1.46;overflow-wrap:anywhere}.feedback{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.feedback button{border:0;min-height:45px;border-radius:10px;font-size:.88rem;font-weight:790}.correct{background:#d0e8ce;color:#295936}.one{background:#f4e6a5;color:#64501c}.two{background:#e3dff1;color:#53416c}.feedback button:not(:disabled):hover{filter:brightness(.96)}
+    .history{display:flex;flex-direction:column;gap:7px;margin:10px 0 0;padding:0;list-style:none;max-height:175px;overflow:auto}.history li{display:flex;align-items:baseline;justify-content:space-between;gap:10px;background:#f8f9f5;border-radius:9px;padding:8px 10px;font-size:.77rem}.history strong{font-weight:720;overflow-wrap:anywhere}.history small{white-space:nowrap;color:#69766e} .subactions{display:flex;justify-content:flex-end;margin-top:9px}.text-button{background:transparent;border:0;color:#4e706d;padding:6px 0;font-size:.79rem;font-weight:750;text-decoration:underline;text-underline-offset:3px}
+    .list-header{display:flex;align-items:end;justify-content:space-between;gap:14px;margin-bottom:16px}.bigcount{font-size:2.2rem;line-height:1;font-weight:830;letter-spacing:-.065em;color:var(--navy)}.count-label{color:var(--muted);font-size:.81rem;font-weight:600}.list-description{font-size:.83rem;color:var(--muted);margin:6px 0 0;line-height:1.45}.empty{border:1px dashed #ced4c9;border-radius:12px;background:#fafbf9;padding:36px 20px;text-align:center;color:#67756c;font-size:.92rem;line-height:1.55}
+    .partition-list{display:grid;gap:9px}.partition{border:1px solid #dfe4de;border-radius:13px;padding:10px;background:#fff;display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:center}.partition-num{font-weight:800;color:#9ba6a0;font-size:.83rem;align-self:start;padding-top:12px;width:23px;text-align:right}.choices{display:grid;grid-template-columns:1fr;gap:7px}.choice{width:100%;text-align:left;border-radius:9px;background:#f3f5f1;border:1.5px solid transparent;min-height:45px;padding:10px 12px;color:#36483f;font-size:.88rem;font-weight:680;line-height:1.35;overflow-wrap:anywhere}.choice:hover{border-color:#a0b8a9;background:#edf3e9}.choice.selected{background:#e9f0e6;border-color:#306854;box-shadow:inset 0 0 0 1px #306854}.choice .groupname{font-size:.63rem;letter-spacing:.1em;text-transform:uppercase;font-weight:850;color:#7a8a81;display:block;margin-bottom:3px}.choice.selected .groupname{color:#2c6c51}.partition.solved{border-color:#8eb88f;background:#f6fcf6} .solvedbanner{border-radius:12px;padding:14px;background:#e6f3e2;border:1px solid #b7d3b0;margin:0 0 14px;font-size:.89rem;color:#305d37;line-height:1.45}.solvedbanner strong{display:block;margin-bottom:4px}
+    .ocr-review{border:1px solid #d9e1d7;border-radius:12px;background:#fafbf8;padding:12px;margin-top:14px}.ocr-review p{font-size:.8rem;line-height:1.45;margin:0 0 10px;color:#5b6d62}.ocr-options{display:grid;grid-template-columns:1fr 1fr;gap:6px;max-height:240px;overflow:auto}.ocr-item{display:flex;gap:6px;align-items:center;border-radius:8px;border:1px solid #e0e5dc;background:white;padding:8px;font-size:.76rem;overflow-wrap:anywhere;cursor:pointer}.ocr-item input{accent-color:#3a675b;flex:none}.review-actions{display:flex;justify-content:flex-end;margin-top:9px}.hidden,[hidden]{display:none!important}.footer{font-size:.77rem;color:#728078;text-align:center;margin-top:24px}
+    @media(max-width:740px){.wrap{padding:18px 12px 55px}.layout{display:flex;flex-direction:column;gap:14px}.panel{padding:17px;width:100%}header{margin-bottom:16px}.list-header{margin-bottom:12px}.partition-list{gap:8px}.word-field{font-size:16px}.feedback button{font-size:.84rem}.controls{gap:8px}}
+    @media(prefers-reduced-motion:no-preference){.choice,.primary,.secondary,.reset{transition:background .13s ease,border-color .13s ease}}
+  </style>
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <div class="brand">
+      <div class="mark" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+      <div><h1>Connections Solver</h1><p class="subtitle">Find the last two groups of four.</p></div>
+    </div>
+    <button type="button" id="reset" class="reset">New puzzle</button>
+  </header>
+  <div class="layout">
+    <section class="panel" aria-labelledby="words-heading">
+      <div class="eyebrow">Step 1</div><h2 id="words-heading">Your eight remaining words</h2>
+      <p class="description">Type the unsolved words in any order, or choose a screenshot. Each pair of groups is one possible solution.</p>
+      <div class="word-grid" id="word-grid">
+        <input class="word-field" maxlength="50" type="text" placeholder="Word 1" aria-label="Word 1" autocomplete="off" spellcheck="false">
+        <input class="word-field" maxlength="50" type="text" placeholder="Word 2" aria-label="Word 2" autocomplete="off" spellcheck="false">
+        <input class="word-field" maxlength="50" type="text" placeholder="Word 3" aria-label="Word 3" autocomplete="off" spellcheck="false">
+        <input class="word-field" maxlength="50" type="text" placeholder="Word 4" aria-label="Word 4" autocomplete="off" spellcheck="false">
+        <input class="word-field" maxlength="50" type="text" placeholder="Word 5" aria-label="Word 5" autocomplete="off" spellcheck="false">
+        <input class="word-field" maxlength="50" type="text" placeholder="Word 6" aria-label="Word 6" autocomplete="off" spellcheck="false">
+        <input class="word-field" maxlength="50" type="text" placeholder="Word 7" aria-label="Word 7" autocomplete="off" spellcheck="false">
+        <input class="word-field" maxlength="50" type="text" placeholder="Word 8" aria-label="Word 8" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="controls">
+        <button type="button" class="primary" id="generate">Generate options</button>
+        <label class="secondary upload-label" role="button" tabindex="0" id="upload-label" aria-label="Upload words from an image">Upload words <input type="file" id="image-input" accept="image/*"></label>
+      </div>
+      <p class="hint">Screenshot reading needs internet access and may take a moment. You can always correct the recognized words.</p>
+      <div class="ocr-review" id="ocr-review" hidden>
+        <p id="ocr-caption">Select exactly eight recognized items, or close this panel and type the words yourself.</p>
+        <div class="ocr-options" id="ocr-options"></div>
+        <div class="review-actions"><button class="secondary" type="button" id="import-selected">Import selected words</button></div>
+      </div>
+      <div class="status" id="status" role="status" aria-live="polite">Enter eight words to begin.</div>
+      <div class="divider"></div>
+      <div class="eyebrow">Step 2</div><h2>Use the puzzle’s feedback</h2>
+      <p class="description">Tap either group in the list, try those four words in your puzzle, and select the feedback it gives you.</p>
+      <div class="selected-box"><span class="selected-caption">Selected guess</span><div class="selected-text" id="selected-text">Tap a group to select your guess.</div></div>
+      <div class="feedback">
+        <button type="button" class="correct" data-result="0" disabled>Correct</button>
+        <button type="button" class="one" data-result="1" disabled>1 Away</button>
+        <button type="button" class="two" data-result="2" disabled>2 Away</button>
+      </div>
+      <div id="history-section" hidden>
+        <div class="divider"></div><div class="eyebrow">Feedback history</div>
+        <ol class="history" id="history"></ol>
+        <div class="subactions"><button class="text-button" type="button" id="undo">Undo last feedback</button></div>
+      </div>
+    </section>
+    <section class="panel" aria-labelledby="options-heading">
+      <div class="list-header"><div><div class="eyebrow">Possible solutions</div><h2 id="options-heading">Remaining options</h2><p class="list-description">Choose either group in a pair to test it.</p></div><div style="text-align:right;flex:none"><div class="bigcount" id="count" aria-live="polite">0</div><div class="count-label">of 35</div></div></div>
+      <div id="solved-banner" class="solvedbanner" hidden></div>
+      <div id="options" class="partition-list"><div class="empty">Enter the eight words and tap <strong>Generate options</strong> to see all 35 possible ways to divide them into two groups of four.</div></div>
+    </section>
+  </div>
+  <p class="footer">Your word lists and feedback stay in this browser tab. This is an independent puzzle helper.</p>
+</main>
+<!-- Browser OCR is loaded ONLY after the user selects an image. Gameplay needs no external libraries. -->
+<script>
+"use strict";
+
+// -------------------------------------------------------------------------
+// ENGINE: faithfully port the Pyto solver's unordered 4+4 partitions and
+// feedback relationship. Index arrays are used instead of strings so words
+// cannot be accidentally merged when they have similar spelling.
+// -------------------------------------------------------------------------
+const inputs = [...document.querySelectorAll('.word-field')];
+const $ = id => document.getElementById(id);
+const statusNode = $('status');
+const state = {
+  words: [], partitions: [], remaining: [], selected: null, history: [], solved: false,
+  ocrItems: [], working: false
+};
+
+function chooseFour(items) {
+  const result = [];
+  for (let a = 0; a < items.length - 3; a++)
+    for (let b = a + 1; b < items.length - 2; b++)
+      for (let c = b + 1; c < items.length - 1; c++)
+        for (let d = c + 1; d < items.length; d++)
+          result.push([items[a], items[b], items[c], items[d]]);
+  return result;
+}
+function allPartitions() {
+  // Keeping index zero in group A eliminates duplicate complement pairs.
+  const result = [];
+  for (const a of chooseFour([0,1,2,3,4,5,6,7])) {
+    if (!a.includes(0)) continue;
+    const b = [0,1,2,3,4,5,6,7].filter(x => !a.includes(x));
+    result.push({a, b});
+  }
+  return result;
+}
+function relationship(partition, guess) {
+  const overlap = partition.a.filter(x => guess.includes(x)).length;
+  if (overlap === 0 || overlap === 4) return 0; // Correct.
+  if (overlap === 1 || overlap === 3) return 1; // One word away.
+  return 2;                                     // Two words away.
+}
+function labelGroup(indices) {
+  return indices.map(i => {
+    const word = state.words[i];
+    return word.slice(0,1) + word.slice(1).toLowerCase();
+  }).join(' • ');
+}
+function arraysEqual(a,b){return a && b && a.length===b.length && a.every((n,i)=>n===b[i]);}
+function setStatus(message, style='') {
+  statusNode.textContent=message;
+  statusNode.className='status'+(style?' '+style:'');
+}
+function resetState(){
+  state.words=[];state.partitions=[];state.remaining=[];state.selected=null;
+  state.history=[];state.solved=false;
+  render();
+}
+function generate() {
+  const words = inputs.map(input => input.value.trim().replace(/\s+/g,' ').toUpperCase());
+  if (words.some(word => !word)) {setStatus('Please enter all eight words.', 'error');return;}
+  if (new Set(words).size !== 8) {setStatus('Each word must be different.', 'error');return;}
+  state.words = words;
+  state.partitions = allPartitions();
+  state.remaining = state.partitions.slice();
+  state.selected = null;
+  state.history = [];
+  state.solved = false;
+  render();
+  setStatus('35 possible solutions. Select a group to try in the puzzle.');
+}
+function selectGuess(guess){
+  if (!state.remaining.length || state.solved) return;
+  state.selected=[...guess];
+  render();
+}
+function feedback(result){
+  if (!state.remaining.length) {setStatus('Generate the options first.','error');return;}
+  if (!state.selected) {setStatus('Select a group first.','error');return;}
+  if (state.solved) {setStatus('Already solved. Start a new puzzle to play again.');return;}
+  const possible=state.remaining.filter(p=>relationship(p,state.selected)===result);
+  if (!possible.length) {setStatus('No solutions fit that feedback. Check your selection or previous answers.','error');return;}
+  const guess=[...state.selected];
+  state.history.push({guess,result});
+  state.remaining=possible;
+  state.solved=(result===0);
+  state.selected=null;
+  render();
+  const label=result===1?'1 Away':result===2?'2 Away':'Correct';
+  if (result===0) {
+    const partition=state.remaining[0];
+    const other=arraysEqual(guess,partition.a)?partition.b:partition.a;
+    setStatus('Correct! The other group is '+labelGroup(other)+'.','success');
+  } else {
+    setStatus(label+': '+state.remaining.length+' possible solution'+(state.remaining.length===1?'':'s')+' remain.');
+  }
+}
+function undo(){
+  if (!state.history.length) return;
+  const undone=state.history.pop();
+  state.remaining=state.partitions.filter(p=>state.history.every(h=>relationship(p,h.guess)===h.result));
+  state.solved=state.history.some(h=>h.result===0);
+  state.selected=undone.guess;
+  render();
+  setStatus('Last feedback undone. '+state.remaining.length+' possible solutions.');
+}
+function make(tag,className,content){
+  const el=document.createElement(tag);
+  if(className)el.className=className;
+  if(content!==undefined)el.textContent=content;
+  return el;
+}
+function render(){
+  $('count').textContent=state.remaining.length;
+  $('selected-text').textContent=state.selected?labelGroup(state.selected):state.solved?'Puzzle solved!':'Tap a group to select your guess.';
+  document.querySelectorAll('[data-result]').forEach(b=>{b.disabled=!state.selected||state.solved;});
+  $('history-section').hidden=!state.history.length;
+  const history=$('history');history.replaceChildren();
+  for (const h of state.history){
+    const li=make('li');li.append(make('strong','',labelGroup(h.guess)),make('small','',h.result===0?'Correct':h.result===1?'1 Away':'2 Away'));history.append(li);
+  }
+  $('solved-banner').hidden=!state.solved;
+  if(state.solved){
+    const p=state.remaining[0];const h=state.history[state.history.length-1];
+    const complement=arraysEqual(h.guess,p.a)?p.b:p.a;
+    $('solved-banner').replaceChildren(make('strong','','You found a group!'),make('span','','Other group: '+labelGroup(complement)));
+  }
+  const options=$('options');options.replaceChildren();
+  if (!state.remaining.length) {
+    options.append(make('div','empty','Enter the eight words and tap Generate options to see all 35 possible ways to divide them into two groups of four.'));
+    return;
+  }
+  const fragment=document.createDocumentFragment();
+  state.remaining.forEach((part,i)=>{
+    const row=make('div','partition'+(state.solved?' solved':''));
+    row.append(make('div','partition-num',String(i+1).padStart(2,'0')));
+    const choices=make('div','choices');
+    for(const [group,indices] of [['A',part.a],['B',part.b]]){
+      const btn=make('button','choice'+(arraysEqual(state.selected,indices)?' selected':''));
+      btn.type='button';btn.disabled=state.solved;
+      btn.setAttribute('aria-pressed',String(arraysEqual(state.selected,indices)));
+      btn.setAttribute('aria-label','Select group '+group+': '+indices.map(n=>state.words[n]).join(', '));
+      btn.append(make('span','groupname','Group '+group),document.createTextNode(labelGroup(indices)));
+      btn.addEventListener('click',()=>selectGuess(indices));
+      choices.append(btn);
+    }
+    row.append(choices);fragment.append(row);
+  });
+  options.append(fragment);
+}
+
+// -------------------------------------------------------------------------
+// SCREENSHOT IMPORT: lazy-load Tesseract.js, a browser WebAssembly OCR library.
+// Raw screenshot is processed on the user's device; no custom server or upload
+// endpoint is involved. CDN-hosted OCR workers/models require internet access.
+// -------------------------------------------------------------------------
+function loadOcrLibrary(){
+  if(window.Tesseract) return Promise.resolve();
+  if(loadOcrLibrary.inFlight) return loadOcrLibrary.inFlight;
+  loadOcrLibrary.inFlight=new Promise((resolve,reject)=>{
+    const script=document.createElement('script');
+    script.src='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+    script.onload=()=>window.Tesseract?resolve():reject(new Error('OCR library failed to initialize'));
+    script.onerror=()=>reject(new Error('Could not load screenshot reader. Check your internet connection.'));
+    document.head.append(script);
+  }).catch(e=>{loadOcrLibrary.inFlight=null;throw e;});
+  return loadOcrLibrary.inFlight;
+}
+function tidyOcrText(text){
+  return String(text||'').trim().replace(/\s+/g,' ').replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu,'').toUpperCase();
+}
+function validOcrItem(text){return /[\p{L}\p{N}]/u.test(text) && text.length<=50;}
+function boxOf(item){
+  const b=item?.bbox || item?.boundingBox || {};
+  return {x0:Number(b.x0??b.left??0),x1:Number(b.x1??b.right??0),y0:Number(b.y0??b.top??0),y1:Number(b.y1??b.bottom??0)};
+}
+function sortTwoRowGrid(items){
+  if(items.length===8){
+    const byY=[...items].sort((a,b)=>a.y-b.y);
+    return [...byY.slice(0,4).sort((a,b)=>a.x-b.x),...byY.slice(4).sort((a,b)=>a.x-b.x)];
+  }
+  return [...items].sort((a,b)=>a.y-b.y||a.x-b.x);
+}
+function parseOcr(data){
+  // Lines usually correspond to individual tiles, including multiword tiles.
+  // Fall back to per-word boxes when no line boxes were supplied.
+  const lines=Array.isArray(data.lines)?data.lines:[];
+  const words=Array.isArray(data.words)?data.words:[];
+  // Sometimes OCR merges an entire tile row into one line. If individual
+  // word boxes yield eight tiles, prefer those over a 2-line result.
+  const candidates=lines.length===8?lines:words.length===8?words:(lines.length?lines:words);
+  const items=candidates.map(item=>{
+    const box=boxOf(item);
+    return {text:tidyOcrText(item.text),x:(box.x0+box.x1)/2,y:(box.y0+box.y1)/2};
+  }).filter(item=>validOcrItem(item.text));
+  if(items.length) return sortTwoRowGrid(items);
+  // If this OCR build only supplies full recognized text, allow manual review.
+  return String(data.text||'').split(/\r?\n/).map(text=>({text:tidyOcrText(text),x:0,y:0})).filter(item=>validOcrItem(item.text));
+}
+function fillWords(items){
+  inputs.forEach((input,i)=>{input.value=items[i]?.text||'';});
+  resetState();
+  $('ocr-review').hidden=true;
+  if(items.length===8){
+    generate();
+    if(state.partitions.length) setStatus('8 words imported from screenshot. Check the spellings.','success');
+  }
+  else setStatus('Imported '+items.length+' word'+(items.length===1?'':'s')+'. Complete or correct the fields before generating.');
+}
+function renderOcrReview(items){
+  state.ocrItems=items;
+  $('ocr-review').hidden=false;
+  $('ocr-caption').textContent='Recognized '+items.length+' text items. Select the eight puzzle words to import, then check the spellings.';
+  $('ocr-options').replaceChildren();
+  items.forEach((item,i)=>{
+    const label=make('label','ocr-item');
+    const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.value=String(i);checkbox.checked=items.length<=8;
+    label.append(checkbox,make('span','',item.text));$('ocr-options').append(label);
+  });
+}
+async function importScreenshot(file){
+  if(!file) return;
+  state.working=true;
+  $('image-input').disabled=true;
+  setStatus('Loading screenshot reader…');
+  try {
+    await loadOcrLibrary();
+    setStatus('Reading the screenshot on your device. This can take a little while…');
+    const result=await window.Tesseract.recognize(file,'eng',{
+      logger:m=>{if(m?.status==='recognizing text' && Number.isFinite(m.progress))setStatus('Reading words… '+Math.round(m.progress*100)+'%');}
+    });
+    const items=parseOcr(result.data||{});
+    if(items.length===8){fillWords(items);}
+    else if(items.length>0){renderOcrReview(items);setStatus('Review the recognized text and choose the eight words.');}
+    else {setStatus('No words recognized. Try cropping the image to the eight tiles, or type them manually.','error');}
+  } catch(e){
+    console.error('Screenshot reader failed:',e);
+    setStatus('Screenshot reading failed. You can type the words instead, or try another screenshot.','error');
+  } finally{state.working=false;$('image-input').disabled=false;$('image-input').value='';}
+}
+
+// -------------------------------------------------------------------------
+// EVENTS: inputs, mobile keyboard, candidate buttons, feedback, and upload.
+// -------------------------------------------------------------------------
+$('generate').addEventListener('click',generate);
+$('reset').addEventListener('click',()=>{inputs.forEach(input=>input.value='');resetState();$('ocr-review').hidden=true;setStatus('Enter eight words to begin.');inputs[0].focus();});
+inputs.forEach((input,index)=>{
+  input.addEventListener('input',()=>{
+    if(state.partitions.length){resetState();setStatus('Words changed. Tap Generate options to recalculate.');}
+  });
+  input.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){
+      e.preventDefault();
+      if(index<7) inputs[index+1].focus();
+      else {input.blur();generate();}
+    }
+  });
+});
+document.querySelectorAll('[data-result]').forEach(button=>button.addEventListener('click',()=>feedback(Number(button.dataset.result))));
+$('undo').addEventListener('click',undo);
+$('image-input').addEventListener('change',e=>importScreenshot(e.target.files?.[0]));
+$('import-selected').addEventListener('click',()=>{
+  const selected=[...$('ocr-options').querySelectorAll('input:checked')].map(input=>state.ocrItems[Number(input.value)]);
+  if(selected.length!==8){setStatus('Select exactly eight text items (currently '+selected.length+').','error');return;}
+  fillWords(sortTwoRowGrid(selected));
+});
+$('upload-label').addEventListener('keydown',e=>{
+  if(e.key==='Enter'||e.key===' '){e.preventDefault();$('image-input').click();}
+});
+render();
+</script>
+</body>
+</html>
