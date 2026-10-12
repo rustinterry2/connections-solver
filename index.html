@@ -16,9 +16,15 @@
     .divider{height:1px;background:#ebece6;margin:22px 0 18px} .selected-box{background:#f4f5ef;border:1px solid #e3e8df;border-radius:12px;padding:13px;margin:11px 0 12px}.selected-caption{display:block;font-size:.73rem;letter-spacing:.08em;text-transform:uppercase;color:#67766f;font-weight:780;margin-bottom:6px}.selected-text{font-weight:730;font-size:.92rem;line-height:1.46;overflow-wrap:anywhere}.feedback{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.feedback button{border:0;min-height:45px;border-radius:10px;font-size:.88rem;font-weight:790}.correct{background:#d0e8ce;color:#295936}.one{background:#f4e6a5;color:#64501c}.two{background:#e3dff1;color:#53416c}.feedback button:not(:disabled):hover{filter:brightness(.96)}
     .history{display:flex;flex-direction:column;gap:7px;margin:10px 0 0;padding:0;list-style:none;max-height:175px;overflow:auto}.history li{display:flex;align-items:baseline;justify-content:space-between;gap:10px;background:#f8f9f5;border-radius:9px;padding:8px 10px;font-size:.77rem}.history strong{font-weight:720;overflow-wrap:anywhere}.history small{white-space:nowrap;color:#69766e} .subactions{display:flex;justify-content:flex-end;margin-top:9px}.text-button{background:transparent;border:0;color:#4e706d;padding:6px 0;font-size:.79rem;font-weight:750;text-decoration:underline;text-underline-offset:3px}
     .list-header{display:flex;align-items:end;justify-content:space-between;gap:14px;margin-bottom:16px}.bigcount{font-size:2.2rem;line-height:1;font-weight:830;letter-spacing:-.065em;color:var(--navy)}.count-label{color:var(--muted);font-size:.81rem;font-weight:600}.list-description{font-size:.83rem;color:var(--muted);margin:6px 0 0;line-height:1.45}.empty{border:1px dashed #ced4c9;border-radius:12px;background:#fafbf9;padding:36px 20px;text-align:center;color:#67756c;font-size:.92rem;line-height:1.55}
-    .partition-list{display:grid;gap:9px}.partition{border:1px solid #dfe4de;border-radius:13px;padding:10px;background:#fff;display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:center}.partition-num{font-weight:800;color:#9ba6a0;font-size:.83rem;align-self:start;padding-top:12px;width:23px;text-align:right}.choices{display:grid;grid-template-columns:1fr;gap:7px}.choice{width:100%;text-align:left;border-radius:9px;background:#f3f5f1;border:1.5px solid transparent;min-height:45px;padding:10px 12px;color:#36483f;font-size:.88rem;font-weight:680;line-height:1.35;overflow-wrap:anywhere}.choice:hover{border-color:#a0b8a9;background:#edf3e9}.choice.selected{background:#e9f0e6;border-color:#306854;box-shadow:inset 0 0 0 1px #306854}.choice .groupname{font-size:.63rem;letter-spacing:.1em;text-transform:uppercase;font-weight:850;color:#7a8a81;display:block;margin-bottom:3px}.choice.selected .groupname{color:#2c6c51}.partition.solved{border-color:#8eb88f;background:#f6fcf6} .solvedbanner{border-radius:12px;padding:14px;background:#e6f3e2;border:1px solid #b7d3b0;margin:0 0 14px;font-size:.89rem;color:#305d37;line-height:1.45}.solvedbanner strong{display:block;margin-bottom:4px}
+    /* Compact Pyto-style solution list: one four-word guess in each row. */
+    .partition-list{display:flex;flex-direction:column;gap:0;border:1px solid #dfe4de;border-radius:12px;background:#fff;overflow:hidden}
+    .choice{display:block;width:100%;min-height:44px;padding:10px 12px;text-align:left;background:#fff;color:#293a34;font-size:.94rem;font-weight:560;line-height:1.3;border:0;border-bottom:1px solid #e6e8e4;border-radius:0;overflow-wrap:anywhere}
+    .choice:last-child{border-bottom:0}
+    .choice:hover:not(:disabled){background:#f3f5f1}
+    .choice.selected{background:#e9f0e6;box-shadow:inset 4px 0 0 #306854;font-weight:700}
+    .solvedbanner{border-radius:12px;padding:14px;background:#e6f3e2;border:1px solid #b7d3b0;margin:0 0 14px;font-size:.89rem;color:#305d37;line-height:1.45}.solvedbanner strong{display:block;margin-bottom:4px}
     .ocr-review{border:1px solid #d9e1d7;border-radius:12px;background:#fafbf8;padding:12px;margin-top:14px}.ocr-review p{font-size:.8rem;line-height:1.45;margin:0 0 10px;color:#5b6d62}.ocr-options{display:grid;grid-template-columns:1fr 1fr;gap:6px;max-height:240px;overflow:auto}.ocr-item{display:flex;gap:6px;align-items:center;border-radius:8px;border:1px solid #e0e5dc;background:white;padding:8px;font-size:.76rem;overflow-wrap:anywhere;cursor:pointer}.ocr-item input{accent-color:#3a675b;flex:none}.review-actions{display:flex;justify-content:flex-end;margin-top:9px}.hidden,[hidden]{display:none!important}.footer{font-size:.77rem;color:#728078;text-align:center;margin-top:24px}
-    @media(max-width:740px){.wrap{padding:18px 12px 55px}.layout{display:flex;flex-direction:column;gap:14px}.panel{padding:17px;width:100%}header{margin-bottom:16px}.list-header{margin-bottom:12px}.partition-list{gap:8px}.word-field{font-size:16px}.feedback button{font-size:.84rem}.controls{gap:8px}}
+    @media(max-width:740px){.wrap{padding:18px 12px 55px}.layout{display:flex;flex-direction:column;gap:14px}.panel{padding:17px;width:100%}header{margin-bottom:16px}.list-header{margin-bottom:12px}.choice{min-height:42px;padding:9px 12px;font-size:.93rem}.word-field{font-size:16px}.feedback button{font-size:.84rem}.controls{gap:8px}}
     @media(prefers-reduced-motion:no-preference){.choice,.primary,.secondary,.reset{transition:background .13s ease,border-color .13s ease}}
   </style>
 </head>
@@ -34,7 +40,7 @@
   <div class="layout">
     <section class="panel" aria-labelledby="words-heading">
       <div class="eyebrow">Step 1</div><h2 id="words-heading">Your eight remaining words</h2>
-      <p class="description">Type the unsolved words in any order, or choose a screenshot. Each pair of groups is one possible solution.</p>
+      <p class="description">Type the unsolved words in any order, or choose a screenshot. Each solution displays just one four-word group.</p>
       <div class="word-grid" id="word-grid">
         <input class="word-field" maxlength="50" type="text" placeholder="Word 1" aria-label="Word 1" autocomplete="off" spellcheck="false">
         <input class="word-field" maxlength="50" type="text" placeholder="Word 2" aria-label="Word 2" autocomplete="off" spellcheck="false">
@@ -58,7 +64,7 @@
       <div class="status" id="status" role="status" aria-live="polite">Enter eight words to begin.</div>
       <div class="divider"></div>
       <div class="eyebrow">Step 2</div><h2>Use the puzzle’s feedback</h2>
-      <p class="description">Tap either group in the list, try those four words in your puzzle, and select the feedback it gives you.</p>
+      <p class="description">Tap a guess in the list, try those four words in your puzzle, and select the feedback it gives you.</p>
       <div class="selected-box"><span class="selected-caption">Selected guess</span><div class="selected-text" id="selected-text">Tap a group to select your guess.</div></div>
       <div class="feedback">
         <button type="button" class="correct" data-result="0" disabled>Correct</button>
@@ -72,7 +78,7 @@
       </div>
     </section>
     <section class="panel" aria-labelledby="options-heading">
-      <div class="list-header"><div><div class="eyebrow">Possible solutions</div><h2 id="options-heading">Remaining options</h2><p class="list-description">Choose either group in a pair to test it.</p></div><div style="text-align:right;flex:none"><div class="bigcount" id="count" aria-live="polite">0</div><div class="count-label">of 35</div></div></div>
+      <div class="list-header"><div><div class="eyebrow">Possible solutions</div><h2 id="options-heading">Remaining options</h2><p class="list-description">Tap a four-word guess to test it.</p></div><div style="text-align:right;flex:none"><div class="bigcount" id="count" aria-live="polite">0</div><div class="count-label">of 35</div></div></div>
       <div id="solved-banner" class="solvedbanner" hidden></div>
       <div id="options" class="partition-list"><div class="empty">Enter the eight words and tap <strong>Generate options</strong> to see all 35 possible ways to divide them into two groups of four.</div></div>
     </section>
@@ -106,7 +112,7 @@ function chooseFour(items) {
   return result;
 }
 function allPartitions() {
-  // Keeping index zero in group A eliminates duplicate complement pairs.
+  // Keep the first word in the displayed group to avoid duplicate complementary pairs.
   const result = [];
   for (const a of chooseFour([0,1,2,3,4,5,6,7])) {
     if (!a.includes(0)) continue;
@@ -212,20 +218,19 @@ function render(){
     return;
   }
   const fragment=document.createDocumentFragment();
-  state.remaining.forEach((part,i)=>{
-    const row=make('div','partition'+(state.solved?' solved':''));
-    row.append(make('div','partition-num',String(i+1).padStart(2,'0')));
-    const choices=make('div','choices');
-    for(const [group,indices] of [['A',part.a],['B',part.b]]){
-      const btn=make('button','choice'+(arraysEqual(state.selected,indices)?' selected':''));
-      btn.type='button';btn.disabled=state.solved;
-      btn.setAttribute('aria-pressed',String(arraysEqual(state.selected,indices)));
-      btn.setAttribute('aria-label','Select group '+group+': '+indices.map(n=>state.words[n]).join(', '));
-      btn.append(make('span','groupname','Group '+group),document.createTextNode(labelGroup(indices)));
-      btn.addEventListener('click',()=>selectGuess(indices));
-      choices.append(btn);
-    }
-    row.append(choices);fragment.append(row);
+  // Show only the representative group, just as the Python TableView does.
+  // Its four-word complement remains in part.b for all feedback calculations.
+  state.remaining.forEach(part=>{
+    const indices=part.a;
+    const selected=arraysEqual(state.selected,indices);
+    const btn=make('button','choice'+(selected?' selected':''));
+    btn.type='button';
+    btn.disabled=state.solved;
+    btn.setAttribute('aria-pressed',String(selected));
+    btn.setAttribute('aria-label','Select guess: '+indices.map(n=>state.words[n]).join(', '));
+    btn.textContent=labelGroup(indices);
+    btn.addEventListener('click',()=>selectGuess(indices));
+    fragment.append(btn);
   });
   options.append(fragment);
 }
