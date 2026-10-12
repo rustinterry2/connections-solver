@@ -1,39 +1,54 @@
-# Connections Solver (Pyto)
+# Connections Solver
 
-A Python helper for solving the **final eight words** of a Connections-style word-grouping puzzle on an iPhone using Pyto.
+A mobile-friendly **web version** of the [original Python Connections Solver](./connections_solver.py), designed to narrow down the final eight unsolved words in a Connections-style word-grouping puzzle.
 
-## Features
+## Play online
 
-- Enter eight remaining words manually, or choose a screenshot using **Upload Words**.
-- Use Apple's Vision text recognition to extract word tiles from the selected image.
-- Automatically fill the word fields and generate all **35 possible two-group partitions** when exactly eight words are detected.
-- Select a proposed group and record **Correct**, **1 Away**, or **2 Away** feedback.
-- Filter remaining partitions based on feedback and reveal the complementary group when a guess is correct.
+After GitHub Pages has been enabled for this repository, open:
 
-## Requirements
+**https://rustinterry2.github.io/connections-solver/**
 
-- **Pyto** on an iPhone or iPad.
-- Pyto's `pyto_ui` and `photos` modules.
-- Pillow (PIL) and Apple's Vision framework as accessible from Pyto.
+Or open `index.html` in any modern browser to use the grouping and feedback features without a server.
 
-This is a native Pyto app, **not** a browser game or desktop Python program.
+## How to play
 
-## Running the program
+1. Enter the eight remaining unsolved words, or choose **Upload words** and select a screenshot.
+2. Tap **Generate options**. The solver lists all **35 unique partitions** of eight words into two sets of four.
+3. Tap *either* group in a pair to select that four-word guess. (This website lets you select all 70 possible four-word groups; the original Pyto interface displayed only one group per pair.)
+4. Try the words in your puzzle and choose **Correct**, **1 Away**, or **2 Away**.
+5. The solver removes impossible partitions. Continue using feedback until you find a correct group, which also reveals its complementary group.
+6. If you make a mistake when reporting feedback, choose **Undo last feedback**. Use **New puzzle** to start over.
 
-1. Save [`connections_solver.py`](./connections_solver.py) to your device and open it in **Pyto**.
-2. Run the Python script.
-3. Enter the eight remaining words and choose **Generate Options**. Alternatively, choose **Upload Words**, select a screenshot of the eight word tiles, and allow the app to recognize and populate the words.
-4. Tap a candidate grouping, then enter the game's feedback: **Correct**, **1 Away**, or **2 Away**.
-5. Repeat until you have identified the groups.
+## Screenshot import
 
-For better OCR results, crop screenshots to the eight word tiles. When fewer than eight words are recognized, correct the fields manually.
+Click **Upload words** to choose an image. The page lazily loads [Tesseract.js](https://github.com/naptha/tesseract.js) and English language data to recognize text **in your browser**, without uploading the screenshot to a custom app server.
 
-## How the 35 possibilities are calculated
+- OCR requires an internet connection to load its libraries and models.
+- Best results come from a cropped screenshot showing **only the eight remaining tiles** in two rows of four.
+- When OCR finds exactly eight items, it populates the fields and generates the options automatically.
+- When OCR sees a different count, the page lets you select exactly eight recognized items manually.
+- OCR is imperfect: review/correct the recognized words before using the results.
+- The grouping and feedback features do **not** require OCR or an external API.
 
-There are 70 ways to choose four of eight words, but each choice has a complementary group of four. Counting each unordered pair only once leaves **35 unique partitions**.
+## Files
 
-## Notes
+- `index.html`: complete static website (HTML, CSS, and JavaScript in one file; no build step).
+- `connections_solver.py`: original Pyto iPhone app, preserved for existing users.
+- `README.md`: these instructions.
 
-- Intended for the final eight words, not the initial sixteen.
-- Requires no web server or API keys.
-- This repository contains the Pyto source code. GitHub Pages is not needed to use it.
+## Mathematics
+
+There are `C(8,4) = 70` four-word subsets. Each subset's complement represents the same 4+4 partition, so there are `70 / 2 = 35` unique partitions. For each proposed four-word guess, the solver considers how many of the four words fall into a proposed actual group (0 or 4 = Correct, 1 or 3 = 1 Away, 2 = 2 Away). A correct guess against any candidate automatically identifies the other four words.
+
+No answers are fetched from NYT or another puzzle provider; this helper reasons only from the words and feedback you enter. No puzzle progress is saved after the browser tab closes.
+
+## Publishing via GitHub Pages
+
+To make the link above work in a newly created repository:
+
+1. Open **Settings → Pages** in the repository.
+2. Under **Build and deployment**, choose **Deploy from a branch**.
+3. Choose branch **main**, folder **/(root)**, then **Save**.
+4. Wait a few minutes for GitHub Pages to publish, and refresh the URL above.
+
+Further updates to `main/index.html` will automatically trigger another deployment.
