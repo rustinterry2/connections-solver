@@ -1,54 +1,47 @@
-# Connections Solver
+# Connections Helper (Web Version 2)
 
-A mobile-friendly **web version** of the [original Python Connections Solver](./connections_solver.py), designed to narrow down the final eight unsolved words in a Connections-style word-grouping puzzle.
+A mobile-first browser version of the current **Connections Helper** Pyto app, by Rustin Terry.
 
-## Play online
-
-After GitHub Pages has been enabled for this repository, open:
+## Open the web app
 
 **https://rustinterry2.github.io/connections-solver/**
 
-Or open `index.html` in any modern browser to use the grouping and feedback features without a server.
+If GitHub Pages is enabled for the repository's `main` branch and root folder, the site updates automatically when `index.html`, `styles.css`, or `app.js` changes.
 
-## How to play
+## Features
 
-1. Enter the eight remaining unsolved words, or choose **Upload words** and select a screenshot.
-2. Tap **Generate options**. The solver lists all **35 unique partitions** of eight words into two sets of four.
-3. Tap *either* group in a pair to select that four-word guess. (This website lets you select all 70 possible four-word groups; the original Pyto interface displayed only one group per pair.)
-4. Try the words in your puzzle and choose **Correct**, **1 Away**, or **2 Away**.
-5. The solver removes impossible partitions. Continue using feedback until you find a correct group, which also reveals its complementary group.
-6. If you make a mistake when reporting feedback, choose **Undo last feedback**. Use **New puzzle** to start over.
+- Enter the final eight unsolved words in a two-column grid.
+- **Generate Options** creates the 35 unique four-word pairings (4 + 4).
+- Once generated, the eight input fields become tappable word tiles. Tap tiles to highlight corresponding words in solution rows.
+- **Clear** removes highlights only, without changing the number of solutions.
+- **⇄ Swap** toggles which complementary four-word group is displayed.
+- Tap a numbered solution card to select that guess. Use **Correct**, **1 Away**, or **2 Away** to narrow possible partitions.
+- **Edit** restores the original eight words for changes.
+- **Undo feedback** restores the previous possibilities.
+- **Upload Words** immediately opens the browser's native image picker. Screenshot recognition runs afterward.
+- **Paste** reads a copied image where the browser supports image clipboard access and permission is granted.
 
-## Screenshot import
+## Screenshot recognition
 
-Click **Upload words** to choose an image. The page lazily loads [Tesseract.js](https://github.com/naptha/tesseract.js) and English language data to recognize text **in your browser**, without uploading the screenshot to a custom app server.
+The browser version uses [Tesseract.js](https://github.com/naptha/tesseract.js), which downloads its OCR library and models on first use, then recognizes the screenshot locally in the browser. OCR requires an internet connection for that download. Unlike the Pyto app, browser OCR does **not** use native Apple Vision and may be slower.
 
-- OCR requires an internet connection to load its libraries and models.
-- Best results come from a cropped screenshot showing **only the eight remaining tiles** in two rows of four.
-- When OCR finds exactly eight items, it populates the fields and generates the options automatically.
-- When OCR sees a different count, the page lets you select exactly eight recognized items manually.
-- OCR is imperfect: review/correct the recognized words before using the results.
-- The grouping and feedback features do **not** require OCR or an external API.
+A screenshot cropped to the final eight word tiles (two rows of four) generally works best. If OCR recognizes more or fewer than eight items, the app displays a review dialog to choose the correct eight. Review spelling, especially for unfamiliar words.
 
-## Files
+On iOS, image pasting is browser- and permission-dependent. Use Upload Words if Paste is unavailable. No game progress is saved to a server.
 
-- `index.html`: complete static website (HTML, CSS, and JavaScript in one file; no build step).
-- `connections_solver.py`: original Pyto iPhone app, preserved for existing users.
-- `README.md`: these instructions.
+## Repository files
 
-## Mathematics
+- `index.html`: web app markup and mobile-friendly layout
+- `styles.css`: iPhone-like card, tile and button styling
+- `app.js`: solver engine, UI interactions, clipboard/file import, and OCR
+- `connections_solver.py`: original Python/Pyto version, preserved
 
-There are `C(8,4) = 70` four-word subsets. Each subset's complement represents the same 4+4 partition, so there are `70 / 2 = 35` unique partitions. For each proposed four-word guess, the solver considers how many of the four words fall into a proposed actual group (0 or 4 = Correct, 1 or 3 = 1 Away, 2 = 2 Away). A correct guess against any candidate automatically identifies the other four words.
+## How the solver works
 
-No answers are fetched from NYT or another puzzle provider; this helper reasons only from the words and feedback you enter. No puzzle progress is saved after the browser tab closes.
+There are 70 unique four-word selections from eight words. Because each group and its four-word complement represent the same partition, there are **35** possible partitions.
 
-## Publishing via GitHub Pages
+When a guess has an overlap of 0 or 4 with a candidate partition group, the guess is correct. Overlap of 1 or 3 gives *1 Away*. Overlap of 2 gives *2 Away*. The browser displays just one side of each partition at a time but keeps both groups for feedback calculations.
 
-To make the link above work in a newly created repository:
+## Development
 
-1. Open **Settings → Pages** in the repository.
-2. Under **Build and deployment**, choose **Deploy from a branch**.
-3. Choose branch **main**, folder **/(root)**, then **Save**.
-4. Wait a few minutes for GitHub Pages to publish, and refresh the URL above.
-
-Further updates to `main/index.html` will automatically trigger another deployment.
+The site is plain HTML, CSS, and JavaScript: no build step is required. GitHub Pages can serve all three files directly from the root of the `main` branch.
