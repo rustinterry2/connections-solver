@@ -47,7 +47,7 @@ class ConnectionsHelper:
         # Title
         # -----------------------------
         title = ui.Label()
-        title.text = "Connections Helper"
+        title.text = "Connections Solver"
         title.text_alignment = ui.TEXT_ALIGNMENT_CENTER
         title.size = (width - 24, 34)
         title.center = (width / 2, 28)
