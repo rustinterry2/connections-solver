@@ -28,7 +28,7 @@ class ConnectionsHelper:
         # Main view
         # -----------------------------
         self.view = ui.View()
-        self.view.title = "Connections Helper"
+        self.view.title = "Connections Solver"
         self.view.background_color = ui.COLOR_SYSTEM_BACKGROUND
         self.view.size = (390, 760)
 
