@@ -269,6 +269,90 @@ function wordsByTile(data,tiles){
  });
 }
 
+
+/*
+ * Tesseract may recognize only two characters from a long tile.
+ * Zoom in on that physical tile and retry OCR before accepting the result.
+ */
+function isolatedTileCanvas(bitmap,tile,highContrast=false){
+ const width=tile.x1-tile.x0,height=tile.y1-tile.y0;
+ const inset=Math.max(3,Math.min(width,height)*.035);
+ const left=Math.max(0,Math.round(tile.x0+inset));
+ const top=Math.max(0,Math.round(tile.y0+inset));
+ const right=Math.min(bitmap.width,Math.round(tile.x1-inset));
+ const bottom=Math.min(bitmap.height,Math.round(tile.y1-inset));
+ const cropWidth=right-left,cropHeight=bottom-top;
+ if(cropWidth<10||cropHeight<10)return null;
+ const scale=Math.min(3,Math.max(2,850/cropWidth));
+ const canvas=document.createElement('canvas');
+ canvas.width=Math.round(cropWidth*scale);
+ canvas.height=Math.round(cropHeight*scale);
+ const ctx=canvas.getContext('2d',{willReadFrequently:highContrast});
+ if(!ctx)return null;
+ ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
+ ctx.imageSmoothingEnabled=true;
+ ctx.imageSmoothingQuality='high';
+ ctx.drawImage(bitmap,left,top,cropWidth,cropHeight,0,0,canvas.width,canvas.height);
+ if(highContrast){
+  const image=ctx.getImageData(0,0,canvas.width,canvas.height);
+  for(let i=0;i<image.data.length;i+=4){
+   const gray=.299*image.data[i]+.587*image.data[i+1]+.114*image.data[i+2];
+   const v=gray<175?0:255;
+   image.data[i]=image.data[i+1]=image.data[i+2]=v;
+  }
+  ctx.putImageData(image,0,0);
+ }
+ return canvas;
+}
+function suspectOcrTile(item){
+ return cleaned(item?.text).replace(/[^A-Z]/g,'').length<=3;
+}
+async function refineShortOcrTiles(tesseract,image,rectangles,items){
+ const response={items:[...items],uncertain:[]};
+ if(items.length!==8)return response;
+ const suspect=items.flatMap((item,i)=>suspectOcrTile(item)?[i]:[]);
+ if(!suspect.length)return response;
+ let bitmap=null;
+ if(rectangles?.length===8&&typeof createImageBitmap==='function'){
+  try{bitmap=await createImageBitmap(image);}
+  catch(error){console.warn('Unable to zoom in on OCR tile',error);}
+ }
+ try{
+  for(const i of suspect.slice(0,3)){
+   let best=cleaned(response.items[i]?.text);
+   if(bitmap){
+    for(const highContrast of [false,true]){
+     const tile=isolatedTileCanvas(bitmap,rectangles[i],highContrast);
+     if(!tile)continue;
+     try{
+      const attempt=await tesseract.recognize(tile,'eng');
+      const text=cleaned(attempt.data?.text||'');
+      const size=text.replace(/[^A-Z]/g,'').length;
+      if(size>=5&&size>best.replace(/[^A-Z]/g,'').length+2)best=text;
+      if(size>=8)break;
+     }catch(error){console.warn('Zoomed OCR retry failed',error);}
+    }
+   }
+   response.items[i]={...response.items[i],text:best};
+   if(best.replace(/[^A-Z]/g,'').length<=3)response.uncertain.push(i);
+  }
+  response.uncertain.push(...suspect.slice(3));
+ }finally{bitmap?.close?.();}
+ return response;
+}
+function reviewUncertainItems(items,uncertain){
+ inputs.forEach((input,i)=>{
+  input.value=items[i]?.text||'';
+  input.classList.toggle('needs-review',uncertain.includes(i));
+ });
+ state.words=[];state.partitions=[];state.remaining=[];
+ state.selected=null;state.selectedKey=null;state.showOther=false;
+ state.highlights.clear();state.solved=false;state.lastFeedback=null;state.history=[];
+ setBrowseMode(false);render();
+ showMessage('Please check '+uncertain.map(i=>'tile '+(i+1)).join(', ')+
+  ' (highlighted). Its text may be incomplete. Correct it, then tap Generate Options.','error');
+}
+
 function bboxOf(o){const b=o.bbox||{};return{x:(Number(b.x0||0)+Number(b.x1||0))/2,y:(Number(b.y0||0)+Number(b.y1||0))/2};}
 function gridOrder(items){
  const byY=[...items].sort((a,b)=>a.y-b.y);
@@ -308,8 +392,15 @@ async function importImage(file){
    detectEightTileGrid(image)
   ]);
   const data=result.data||{};
-  const items=wordsByTile(data,rectangles)||recognizeItems(data);
-  if(items.length===8){importItems(items);showMessage('Eight words imported. Check spellings.','success');}
+  const initial=wordsByTile(data,rectangles)||recognizeItems(data);
+  const {items,uncertain}=await refineShortOcrTiles(tesseract,image,rectangles,initial);
+  if(items.length===8&&uncertain.length){
+   reviewUncertainItems(items,uncertain);
+  }else if(items.length===8){
+   inputs.forEach(input=>input.classList.remove('needs-review'));
+   importItems(items);
+   showMessage('Eight words imported. Check spellings.','success');
+  }
   else if(items.length){state.ocrItems=items;drawReview(items);$('ocr-dialog').showModal();showMessage('Select the eight puzzle words from the recognized text.');}
   else showMessage('No words recognized. Try cropping to the eight remaining tiles.','error');
  }catch(err){console.error('Screenshot import error:',err);showMessage('Could not read screenshot. Please try another image or type words.','error');}
@@ -326,7 +417,7 @@ function drawReview(items){
 }
 function importItems(items){
  const ordered=gridOrder(items);
- inputs.forEach((input,i)=>{input.value=ordered[i]?.text||'';});
+ inputs.forEach((input,i)=>{input.value=ordered[i]?.text||'';input.classList.remove('needs-review');});
  $('ocr-dialog').close();
  if(!generate()){setBrowseMode(false);showMessage('Review the imported words and generate again.','error');}
 }
@@ -359,6 +450,7 @@ $('import-eight').addEventListener('click',()=>{
 });
 feedbackButtons.forEach(btn=>btn.addEventListener('click',()=>setFeedback(Number(btn.dataset.feedback))));
 tiles.forEach((tile,i)=>tile.addEventListener('click',()=>toggleWord(i)));
+inputs.forEach(input=>input.addEventListener('input',()=>input.classList.remove('needs-review')));
 inputs.forEach((input,i)=>input.addEventListener('keydown',event=>{
  if(event.key!=='Enter')return;event.preventDefault();
  if(i<7)inputs[i+1].focus();else{input.blur();generate();}
