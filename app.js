@@ -167,6 +167,108 @@ function loadTesseract(){
  return loadTesseract.promise;
 }
 function cleaned(text){return String(text||'').trim().replace(/\s+/g,' ').replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu,'').toUpperCase();}
+
+/*
+ * An 8-tile screenshot has two rows of four colored rectangles.
+ * Text recognition can split one tile into several lines (BIG BOX / STORE).
+ * Locate tile backgrounds first and assign OCR text to its physical tile.
+ */
+async function detectEightTileGrid(file){
+ if(typeof createImageBitmap!=='function')return null;
+ let bmp;try{bmp=await createImageBitmap(file);}catch{return null;}
+ try{
+  const scale=Math.min(1,1600/Math.max(bmp.width,bmp.height));
+  const w=Math.round(bmp.width*scale),h=Math.round(bmp.height*scale);
+  if(w<320||h<160)return null;
+  const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+  const context=canvas.getContext('2d',{willReadFrequently:true});
+  if(!context)return null;
+  context.drawImage(bmp,0,0,w,h);
+  const rgba=context.getImageData(0,0,w,h).data;
+  const corners=[[3,3],[w-4,3],[3,h-4],[w-4,h-4]];
+  const bg=[0,1,2].map(channel=>{
+   const v=corners.map(([x,y])=>rgba[(y*w+x)*4+channel]).sort((a,b)=>a-b);
+   return (v[1]+v[2])/2;
+  });
+  function marked(x,y){
+   let i=(y*w+x)*4;
+   return Math.abs(rgba[i]-bg[0])+Math.abs(rgba[i+1]-bg[1])+
+    Math.abs(rgba[i+2]-bg[2])>28;
+  }
+  function runs(length,test,min){
+   const out=[];let start=-1;
+   for(let i=0;i<=length;i++){
+    const active=i<length&&test(i);
+    if(active&&start<0)start=i;
+    if(!active&&start>=0){if(i-start>=min)out.push([start,i]);start=-1;}
+   }
+   return out;
+  }
+  const upper=Math.round(.25*h),lower=Math.round(.75*h);
+  const xs=runs(w,x=>marked(x,upper)&&marked(x,lower),Math.round(.12*w));
+  if(xs.length!==4)return null;
+  const centers=xs.map(([a,b])=>Math.floor((a+b)/2));
+  const ys=runs(h,y=>centers.filter(x=>marked(x,y)).length>=3,Math.round(.16*h));
+  if(ys.length!==2)return null;
+  const widths=xs.map(([a,b])=>b-a),heights=ys.map(([a,b])=>b-a);
+  const avg=a=>a.reduce((sum,v)=>sum+v,0)/a.length;
+  if(widths.some(x=>Math.abs(x-avg(widths))>avg(widths)*.20)||
+     heights.some(y=>Math.abs(y-avg(heights))>avg(heights)*.20))return null;
+  if(xs.some(([a],i)=>i>0&&a-xs[i-1][1]<w*.008)||
+     ys[1][0]-ys[0][1]<h*.008)return null;
+  if(widths.reduce((sum,x)=>sum+x,0)<.68*w||
+     heights.reduce((sum,y)=>sum+y,0)<.65*h)return null;
+  const rects=[];
+  for(let row=0;row<2;row++)for(let col=0;col<4;col++){
+   const [x0,x1]=xs[col],[y0,y1]=ys[row],inv=1/scale;
+   rects.push({x0:x0*inv,x1:x1*inv,y0:y0*inv,y1:y1*inv,
+    x:(x0+x1)*inv/2,y:(y0+y1)*inv/2});
+  }
+  return rects;
+ }catch(e){console.warn('Tile detection unavailable, using normal OCR',e);return null;}
+ finally{bmp.close?.();}
+}
+
+/* Tesseract v5 supports flat word boxes, nested word boxes, and line boxes. */
+function positionedOcrParts(data){
+ const valid=list=>(list||[]).filter(o=>{
+  const b=o?.bbox;
+  return b&&Number.isFinite(Number(b.x0))&&Number.isFinite(Number(b.y0))&&
+   Number(b.x1)>Number(b.x0)&&Number(b.y1)>Number(b.y0)&&cleaned(o.text);
+ });
+ const words=valid(data.words);if(words.length)return words;
+ const nested=[];
+ for(const block of data.blocks||[])for(const paragraph of block.paragraphs||[])
+  for(const line of paragraph.lines||[])for(const word of line.words||[])nested.push(word);
+ if(valid(nested).length)return valid(nested);
+ return valid(data.lines);
+}
+function wordsByTile(data,tiles){
+ if(!tiles||tiles.length!==8)return null;
+ const buckets=Array.from({length:8},()=>[]);
+ for(const o of positionedOcrParts(data)){
+  const b=o.bbox,x=(Number(b.x0)+Number(b.x1))/2,y=(Number(b.y0)+Number(b.y1))/2;
+  const i=tiles.findIndex(t=>x>=t.x0&&x<=t.x1&&y>=t.y0&&y<=t.y1);
+  if(i<0||b.x1-b.x0>(tiles[i].x1-tiles[i].x0)*1.12)continue;
+  buckets[i].push({text:cleaned(o.text),x,y,height:b.y1-b.y0});
+ }
+ if(buckets.some(x=>!x.length))return null;
+ return buckets.map((words,i)=>{
+  const sizes=words.map(w=>w.height).sort((a,b)=>a-b);
+  const gap=Math.max(5,Math.min((tiles[i].y1-tiles[i].y0)*.12,
+   sizes[Math.floor(sizes.length/2)]*.6));
+  const lines=[];
+  for(const word of words.sort((a,b)=>a.y-b.y||a.x-b.x)){
+   let row=lines.find(row=>Math.abs(row.y-word.y)<=gap);
+   if(!row){row={y:word.y,words:[]};lines.push(row);}
+   row.words.push(word);
+  }
+  return {text:cleaned(lines.sort((a,b)=>a.y-b.y)
+    .map(line=>line.words.sort((a,b)=>a.x-b.x).map(w=>w.text).join(' ')).join(' ')),
+   x:tiles[i].x,y:tiles[i].y};
+ });
+}
+
 function bboxOf(o){const b=o.bbox||{};return{x:(Number(b.x0||0)+Number(b.x1||0))/2,y:(Number(b.y0||0)+Number(b.y1||0))/2};}
 function gridOrder(items){
  const byY=[...items].sort((a,b)=>a.y-b.y);
@@ -197,10 +299,16 @@ async function importImage(file){
  try{
   const [tesseract,image]=await Promise.all([loadTesseract(),resizeForOcr(file)]);
   showMessage('Reading screenshot… This may take a moment.');
-  const result=await tesseract.recognize(image,'eng',{logger:m=>{
-   if(m.status==='recognizing text'&&Number.isFinite(m.progress))showMessage('Reading words… '+Math.round(m.progress*100)+'%');
-  }});
-  const items=recognizeItems(result.data||{});
+  // Identify tile rectangles alongside OCR, then combine all lines in each tile.
+  const [result,rectangles]=await Promise.all([
+   tesseract.recognize(image,'eng',{logger:m=>{
+    if(m.status==='recognizing text'&&Number.isFinite(m.progress))
+     showMessage('Reading words… '+Math.round(m.progress*100)+'%');
+   }}),
+   detectEightTileGrid(image)
+  ]);
+  const data=result.data||{};
+  const items=wordsByTile(data,rectangles)||recognizeItems(data);
   if(items.length===8){importItems(items);showMessage('Eight words imported. Check spellings.','success');}
   else if(items.length){state.ocrItems=items;drawReview(items);$('ocr-dialog').showModal();showMessage('Select the eight puzzle words from the recognized text.');}
   else showMessage('No words recognized. Try cropping to the eight remaining tiles.','error');
