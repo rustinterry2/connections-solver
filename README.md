@@ -25,7 +25,7 @@ If GitHub Pages is enabled for the repository's `main` branch and root folder, t
 
 The browser version uses [Tesseract.js](https://github.com/naptha/tesseract.js), which downloads its OCR library and models on first use, then recognizes the screenshot locally in the browser. OCR requires an internet connection for that download. Unlike the Pyto app, browser OCR does **not** use native Apple Vision and may be slower.
 
-A screenshot cropped to the final eight word tiles (two rows of four) generally works best. If OCR recognizes more or fewer than eight items, the app displays a review dialog to choose the correct eight. Review spelling, especially for unfamiliar words.
+A screenshot cropped to the final eight word tiles (two rows of four) generally works best. The app now locates the eight tile rectangles before assigning recognized words to them, so a two-line phrase like **BIG BOX STORE** or **POWERPOINT DECK** stays together as one tile. If the tile grid cannot be detected or OCR misses text, it falls back to the original recognition and review dialog. Review spelling, especially for unfamiliar words.
 
 On iOS, image pasting is browser- and permission-dependent. Use Upload Words if Paste is unavailable. No game progress is saved to a server.
 
